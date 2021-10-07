@@ -2,14 +2,14 @@
 
 uuid="a$(cat /proc/sys/kernel/random/uuid)"
 
-aws cloudformation create-change-set --stack-name $INPUT_STACK_NAME --template-body file://$INPUT_TEMPLATE_BODY --change-set-name=$uuid
+aws cloudformation create-change-set --stack-name $INPUT_STACK_NAME --template-body file://$INPUT_TEMPLATE_BODY --change-set-name=$uuid --include-nested-stacks 
 if [ $? -ne 0 ]; then
   echo "[ERROR] failed to create change set."
   exit 1
 fi
 
 for i in `seq 1 5`; do
-  aws cloudformation describe-change-set --change-set-name=$uuid --stack-name=$INPUT_STACK_NAME --include-nested-stacks --output=json > $uuid.json 
+  aws cloudformation describe-change-set --change-set-name=$uuid --stack-name=$INPUT_STACK_NAME --output=json > $uuid.json 
   status=$(cat $uuid.json | jq -r '.Status')
   if [ ${status} = "CREATE_COMPLETE" ] || [ ${status} = "FAILED" ]; then    
     break
